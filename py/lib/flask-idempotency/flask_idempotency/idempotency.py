@@ -14,7 +14,7 @@ except ImportError:
         from time import sleep
 
 
-class IdempotencyRequestStatus(enum.Enum):
+class IdempotencyRequestStatus(str, enum.Enum):
     in_progress = "in_progress"
     complete = "complete"
 
@@ -43,8 +43,8 @@ class Idempotency:
 
     def _get_redis_keys(self, idempotency_key):
         return (
-            f'{self.app.config.get("IDEMPOTENCY_KEY_PREFIX")}_{idempotency_key}_status',
-            f'{self.app.config.get("IDEMPOTENCY_KEY_PREFIX")}_{idempotency_key}_response',
+            f'{self.app.config.get("IDEMPOTENCY_KEY_PREFIX")}{idempotency_key}_status',
+            f'{self.app.config.get("IDEMPOTENCY_KEY_PREFIX")}{idempotency_key}_response',
         )
 
     def _init_idempotency_request(self, idempotency_key):
@@ -63,13 +63,11 @@ class Idempotency:
     def _update_idempotency_request(self, idempotency_key, status):
         redis_key_status, _ = self._get_redis_keys(idempotency_key)
 
-        self.redis.set(
-            redis_key_status, IdempotencyRequestStatus.complete, ex=self.app.config.get("IDEMPOTENCY_KEY_EXPIRE")
-        )
+        self.redis.set(redis_key_status, status, ex=self.app.config.get("IDEMPOTENCY_KEY_EXPIRE"))
 
     def _get_idempotency_status(self, idempotency_key):
         redis_key_status, _ = self._get_redis_keys(idempotency_key)
-        return self.redis.get(redis_key_status)
+        return IdempotencyRequestStatus[self.redis.get(redis_key_status).decode("utf-8")]
 
     def _get_idempotency_response(self, idempotency_key):
         _, redis_key_response = self._get_redis_keys(idempotency_key)
@@ -94,14 +92,15 @@ class Idempotency:
             return
 
         endtime = time.time() + self.app.config.get("IDEMPOTENCY_REQUEST_TIMEOUT")
+        status = IdempotencyRequestStatus.in_progress
 
         while time.time() < endtime:
             status = self._get_idempotency_status(idempotency_key)
 
-            if status != IdempotencyRequestStatus.complete:
-                sleep(1)
+            if status == IdempotencyRequestStatus.complete:
+                break
 
-        status = self._get_idempotency_status(idempotency_key)
+            sleep(1)
 
         if status == IdempotencyRequestStatus.in_progress:
             abort(408)

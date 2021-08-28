@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant client
+    participant orders
+    participant redis
+
+    client->>orders: POST /orders/ {X-Idemponency-Key: 19d4a44f-1c9e-4b67-a609-98fec0de9643}
+    orders->>redis: Register an idemponency key {status: in progress}
+    orders->>orders: Process the order
+    orders->>redis: Assign a response with<br/>the idemponency key {status: complete}
+    Note right of client: Technical problem occured<br/>and request failed.
+    orders-->>client: Connection timeout
+
+    client->>client: Retry request
+    client->>orders: POST /orders/ {X-Idemponency-Key: 19d4a44f-1c9e-4b67-a609-98fec0de9643}
+    Note right of orders: Server has already seen the idemponency key.<br/>Do not process the order.
+    redis->>orders: Retrieve the response assigned with<br/>the idemponency key.
+    orders->>client: 201: Order processed

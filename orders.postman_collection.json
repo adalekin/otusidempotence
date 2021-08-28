@@ -144,7 +144,10 @@
 						"exec": [
 							"pm.test(\"Status code is 201\", () => {",
 							"  pm.response.to.have.status(201);",
-							"});"
+							"});",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"user1OrderId\", jsonData.id);"
 						],
 						"type": "text/javascript"
 					}
@@ -159,7 +162,7 @@
 						"type": "text"
 					},
 					{
-						"key": "Idempotency-Key",
+						"key": "X-Idempotency-Key",
 						"value": "1",
 						"type": "text"
 					}
@@ -193,8 +196,13 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 409\", () => {",
-							"  pm.response.to.have.status(409);",
+							"pm.test(\"Status code is 201\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Order id is {{user1OrderId}}\", () => {",
+							"  const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.id).to.eql(pm.collectionVariables.get(\"user1OrderId\"));",
 							"});"
 						],
 						"type": "text/javascript"
@@ -210,7 +218,7 @@
 						"type": "text"
 					},
 					{
-						"key": "Idempotency-Key",
+						"key": "X-Idempotency-Key",
 						"value": "1",
 						"type": "text"
 					}
@@ -273,6 +281,10 @@
 		},
 		{
 			"key": "user1AccountId",
+			"value": ""
+		},
+		{
+			"key": "user1OrderId",
 			"value": ""
 		}
 	]

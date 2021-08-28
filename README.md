@@ -2,6 +2,8 @@
 
 # Теория
 
+<img src="./doc/idempotency.svg" width="100%">
+
 # Prerequisites
 
 * Kubernetes 1.21.2

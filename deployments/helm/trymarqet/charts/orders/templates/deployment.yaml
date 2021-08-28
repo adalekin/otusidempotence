@@ -54,6 +54,8 @@ spec:
               value: http://trymarqet-billing.{{ .Release.Namespace }}.svc.cluster.local
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: "trymarqet-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+            - name: REDIS_URL
+              value: "redis://trymarqet-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
           {{- if .Values.global.postgresql.existingSecret }}
             - name: DB_PASSWORD
               valueFrom:

@@ -40,3 +40,6 @@ dependencies:
 - name: kafka
   version: ">=14.0.3"
   repository: https://charts.bitnami.com/bitnami
+- name: redis
+  version: ">=15.0.3"
+  repository: https://charts.bitnami.com/bitnami

@@ -18,3 +18,13 @@ kafka:
     topics:
       - user-registered
       - order-completed
+
+
+## @section Redis Parameters
+
+## Redis chart configuration
+## ref: https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
+##
+redis:
+  auth:
+    enabled: false
