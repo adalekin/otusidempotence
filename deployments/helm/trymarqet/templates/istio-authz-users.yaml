@@ -1,0 +1,28 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ include "trymarqet.fullname" . }}-jwt-authz-users
+  namespace: {{ include "trymarqet.namespace" . }}
+  labels:
+    {{- include "trymarqet.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: users
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["trymarqet/users"]
+    to:
+    - operation:
+        paths: ["/user/*", "/logout/"]
+  - to:
+    - operation:
+        paths: ["/login/", "/register/"]
+  - from:
+    - source:
+        namespaces: [{{ include "trymarqet.namespace" . }}]
+    to:
+    - operation:
+        paths: ["*"]

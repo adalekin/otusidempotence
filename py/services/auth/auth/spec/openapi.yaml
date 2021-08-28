@@ -1,0 +1,123 @@
+openapi: 3.0.0
+info:
+  title: auth REST API
+  version: 1.0.0
+
+paths:
+  /jwt/encode/:
+    post:
+      tags:
+        - jwt
+      summary: Issues JWT token with the specified payload.
+      operationId: auth.api.jwt.encode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: encode_data
+              $ref: '#/components/schemas/EncodeData'
+        description: A data to encode.
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+
+  /jwt/blacklist/:
+    post:
+      tags:
+        - jwt
+      summary: Add JWT token to the blacklist
+      operationId: auth.api.jwt.blacklist
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: token
+              $ref: '#/components/schemas/Token'
+        description: A data to encode.
+        required: true
+      responses:
+        '200':
+          description: Success
+
+  /liveness/:
+    get:
+      tags:
+        - probe
+      summary: Indicates whether the application is running
+      operationId: auth.api.probe.liveness
+      responses:
+        '200':
+          description: Success
+
+  /jwks/:
+    get:
+      tags:
+        - jwks
+      summary: This endpoint will contain the JWK used to sign all issued JWTs.
+      operationId: auth.api.jwks.jwks
+      responses:
+        '200':
+          description: Success
+
+components:
+  schemas:
+    EncodeData:
+      type: object
+      required:
+        - iss
+        - sub
+        - payload
+      properties:
+        iss:
+          type: string
+          description: A JWT token issuer
+        sub:
+          type: string
+          description: A JWT token subject
+        payload:
+          type: object
+          additionalProperties: true
+          description: A JWT token issuer
+
+    Token:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          description: A JWT access token
+
+    TokenData:
+      type: object
+      required:
+        - iat
+        - exp
+        - rf_exp
+        - jti
+        - id
+        - rls
+      properties:
+        iat:
+          type: integer
+          description: Issued at
+        exp:
+          type: integer
+          description: Expiration time
+        rf_exp:
+          type: integer
+          description: Refresh token expiration time
+        jti:
+          type: string
+          description: JWT ID
+        id:
+          type: integer
+          description: A user identifier
+        rls:
+          type: string
+          description: A comma-separated list of user roles

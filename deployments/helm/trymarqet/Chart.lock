@@ -1,0 +1,24 @@
+dependencies:
+- name: auth
+  repository: ""
+  version: ~1.0.0
+- name: users
+  repository: ""
+  version: ~1.0.0
+- name: billing
+  repository: ""
+  version: ~1.0.0
+- name: orders
+  repository: ""
+  version: ~1.0.0
+- name: notifications
+  repository: ""
+  version: ~1.0.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.9.3
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 14.0.3
+digest: sha256:5e49cb7863ce9da7a29efe6277ee739c66fca680b4c4809614de8c9ecc54d6e7
+generated: "2021-08-21T20:20:32.587657+03:00"

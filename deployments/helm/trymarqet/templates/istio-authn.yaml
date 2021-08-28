@@ -1,0 +1,19 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: {{ include "trymarqet.fullname" . }}-jwt-authn
+  namespace: {{ include "trymarqet.namespace" . }}
+  labels:
+    {{- include "trymarqet.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      auth: bearer
+  jwtRules:
+  - issuer: "trymarqet"
+    jwksUri: http://trymarqet-auth.{{ .Release.Namespace }}.svc.cluster.local/jwks/
+    fromHeaders:
+      - name: Authorization
+        prefix: "Bearer "
+    outputPayloadToHeader: X-JWT-Payload
+    forwardOriginalToken: true

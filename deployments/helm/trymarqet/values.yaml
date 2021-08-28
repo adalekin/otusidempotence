@@ -1,0 +1,20 @@
+## @section Database Parameters
+
+## PostgreSQL chart configuration
+## ref: https://github.com/bitnami/charts/blob/master/bitnami/postgresql/values.yaml
+##
+postgresql:
+  postgresqlDatabase: trymarqet
+  postgresqlUsername: trymarqet
+
+
+## @section Kafka Parameters
+
+## Kafka chart configuration
+## ref: https://github.com/bitnami/charts/blob/master/bitnami/kafka/values.yaml
+##
+kafka:
+  provisioning:
+    topics:
+      - user-registered
+      - order-completed

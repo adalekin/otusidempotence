@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "orders.fullname" . }}-migrations
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "orders.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        {{- include "orders.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["flask"]
+          args: ["db", "upgrade"]
+          envFrom:
+            - configMapRef:
+                name: trymarqet-config
+          env:
+            - name: AUTH_URL
+              value: http://trymarqet-auth.{{ .Release.Namespace }}.svc.cluster.local
+            - name: BILLING_URL
+              value: http://trymarqet-billing.{{ .Release.Namespace }}.svc.cluster.local
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "trymarqet-kafka.{{ .Release.Namespace }}.svc.cluster.local:9092"
+            - name: FLASK_APP
+              value: orders.wsgi
+          {{- if .Values.global.postgresql.existingSecret }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.postgresql.existingSecret }}
+                  key: postgresql-postgres-password
+          {{- else }}
+            - name: DB_PASSWORD
+              value: {{ .Values.postgresql.postgresqlPassword }}
+          {{- end }}
+      restartPolicy: OnFailure

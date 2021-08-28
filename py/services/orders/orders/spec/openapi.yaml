@@ -1,0 +1,109 @@
+openapi: 3.0.0
+info:
+  title: orders REST API
+  version: 1.0.0
+
+paths:
+  /orders/:
+    post:
+      tags:
+        - orders
+      summary: Create an order
+      operationId: orders.api.orders.create
+      parameters:
+        - $ref: "#/components/parameters/JWTPayload"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: order
+              $ref: "#/components/schemas/CreateOrder"
+        required: true
+      responses:
+        "201":
+          description: An order successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithID"
+
+  /liveness/:
+    get:
+      tags:
+        - probe
+      summary: Indicates whether the application is running
+      operationId: orders.api.probe.liveness
+      responses:
+        "200":
+          description: Success
+
+components:
+  parameters:
+    JWTPayload:
+      in: "header"
+      name: X-JWT-Payload
+      required: True
+      description: A JWT payload (Base64)
+      schema:
+        type: string
+
+  schemas:
+    CreateOrder:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/CreateOrderItem"
+          description: List of order items
+
+    CreateOrderItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          description: A product identifier
+        quantity:
+          type: integer
+          description: The quantity of the product.
+
+    Order:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            $ref: "#/components/schemas/OrderItem"
+          description: List of order items
+        status:
+          type: string
+          enum: [created, processing, complete, cancelled, refunded]
+          description: An order status
+
+    OrderWithID:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              description: An order identifier
+
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          description: A product identifier
+        quantity:
+          type: integer
+          description: The quantity of the product.
+        unit_price:
+          type: integer
+          description: A product unit price.

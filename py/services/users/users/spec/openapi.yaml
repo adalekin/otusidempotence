@@ -1,0 +1,305 @@
+openapi: 3.0.0
+info:
+  title: users REST API
+  version: 1.0.0
+
+paths:
+  /login/:
+    post:
+      tags:
+        - auth
+      summary: Issues JWT token for the registered user from an email and a password
+      operationId: users.api.auth.login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: login
+              $ref: "#/components/schemas/Login"
+        description: The credentials to login.
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+
+  /logout/:
+    post:
+      tags:
+        - auth
+      summary: Adds the specified JWT token into the blacklist
+      operationId: users.api.auth.logout
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+        - $ref: "#/components/parameters/JWTPayload"
+      responses:
+        "204":
+          description: Success
+
+  /register/:
+    post:
+      tags:
+        - user
+      summary: Register a new user
+      operationId: users.api.user.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: user
+              $ref: "#/components/schemas/RegisterUser"
+        description: The user to create.
+        required: true
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterUserWithID"
+
+  /user/:
+    get:
+      tags:
+        - user
+      summary: Retrieves a current user.
+      operationId: users.api.user.get_current
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+        - $ref: "#/components/parameters/JWTPayload"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithID"
+    patch:
+      tags:
+        - user
+      summary: Update a user by an identifier
+      operationId: users.api.user.update_current
+      parameters:
+        - $ref: "#/components/parameters/Authorization"
+        - $ref: "#/components/parameters/JWTPayload"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: user1
+              $ref: "#/components/schemas/UpdateUser"
+        description: The user to update
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithID"
+
+  /users/{user_id}/:
+    get:
+      tags:
+        - user
+      summary: Retrieves a user by an identifier.
+      operationId: users.api.user.get
+      parameters:
+        - $ref: "#/components/parameters/UserID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithID"
+    patch:
+      tags:
+        - user
+      summary: Update a user by an identifier
+      operationId: users.api.user.update
+      parameters:
+        - $ref: "#/components/parameters/UserID"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: user1
+              $ref: "#/components/schemas/UpdateUser"
+        description: The user to update
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWithID"
+
+  /liveness/:
+    get:
+      tags:
+        - probe
+      summary: Indicates whether the application is running
+      operationId: users.api.probe.liveness
+      responses:
+        "200":
+          description: Success
+
+components:
+  parameters:
+    UserID:
+      in: path
+      name: user_id
+      required: true
+      description: A user identifier
+      schema:
+        type: string
+
+    Authorization:
+      in: "header"
+      name: Authorization
+      required: True
+      description: A JWT token
+      schema:
+        type: string
+
+    JWTPayload:
+      in: "header"
+      name: X-JWT-Payload
+      required: True
+      description: A JWT payload (Base64)
+      schema:
+        type: string
+
+  schemas:
+    Login:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: An e-mail
+        password:
+          type: string
+          description: Password
+
+    User:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: An e-mail
+        phone:
+          type: string
+          description: A phone
+          example: "12345678901"
+          x-nullable: true
+        first_name:
+          type: string
+          description: A first name
+          example: Chin
+          x-nullable: true
+        last_name:
+          type: string
+          description: A first name
+          example: Sang
+          x-nullable: true
+
+    UserWithID:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required:
+            - id
+            - email
+            - phone
+            - first_name
+            - last_name
+            - is_active
+            - last_login
+            - updated_at
+            - created_at
+          properties:
+            id:
+              type: integer
+              description: A user identifier
+            is_active:
+              type: boolean
+              description: Designates whether this user account should be considered active.
+            last_login:
+              type: string
+              format: date-time
+              description: A date the user was logged in the last time
+            updated_at:
+              type: string
+              format: date-time
+              description: A date the user was updated
+            created_at:
+              type: string
+              format: date-time
+              description: A date the user was registered
+
+    RegisterUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required:
+            - email
+          properties:
+            password:
+              type: string
+              description: Password
+              x-nullable: true
+
+    RegisterUserWithID:
+      allOf:
+        - $ref: "#/components/schemas/UserWithID"
+        - type: object
+          required:
+            - id
+            - email
+            - phone
+            - first_name
+            - last_name
+            - is_active
+            - last_login
+            - updated_at
+            - created_at
+            - access_token
+          properties:
+            access_token:
+              type: string
+              description: A JWT access token
+
+    UpdateUser:
+      type: object
+      properties:
+        first_name:
+          type: string
+          description: A first name
+          example: Chin
+          x-nullable: true
+        last_name:
+          type: string
+          description: A first name
+          example: Sang
+          x-nullable: true
+
+    Token:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+          description: A JWT access token

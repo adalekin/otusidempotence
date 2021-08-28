@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "billing.fullname" . }}-migrations
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "billing.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        {{- include "billing.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["flask"]
+          args: ["db", "upgrade"]
+          envFrom:
+            - configMapRef:
+                name: trymarqet-config
+          env:
+            - name: FLASK_APP
+              value: billing.wsgi
+          {{- if .Values.global.postgresql.existingSecret }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.postgresql.existingSecret }}
+                  key: postgresql-postgres-password
+          {{- else }}
+            - name: DB_PASSWORD
+              value: {{ .Values.postgresql.postgresqlPassword }}
+          {{- end }}
+      restartPolicy: OnFailure

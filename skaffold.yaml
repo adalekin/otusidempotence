@@ -1,0 +1,40 @@
+apiVersion: skaffold/v2beta19
+kind: Config
+build:
+  tagPolicy:
+    sha256: {}
+  artifacts:
+    - image: trymarqet/auth
+      context: py/
+      docker:
+        dockerfile: services/auth/Dockerfile
+    - image: trymarqet/users
+      context: py/
+      docker:
+        dockerfile: services/users/Dockerfile
+    - image: trymarqet/billing
+      context: py/
+      docker:
+        dockerfile: services/billing/Dockerfile
+    - image: trymarqet/orders
+      context: py/
+      docker:
+        dockerfile: services/orders/Dockerfile
+    - image: trymarqet/notifications
+      context: py/
+      docker:
+        dockerfile: services/notifications/Dockerfile
+deploy:
+  helm:
+    releases:
+      - name: trymarqet
+        namespace: trymarqet
+        chartPath: deployments/helm/trymarqet
+        imageStrategy:
+          helm: {}
+        setValueTemplates:
+          image.tag: "{{ .DIGEST_HEX }}"
+        valuesFiles:
+          - examples/helm/users/values.dev.yaml
+          - examples/helm/users/secrets.dev.yaml
+        wait: true

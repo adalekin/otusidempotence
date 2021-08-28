@@ -1,0 +1,5 @@
+global:
+  postgresql:
+    existingSecret: trymarqet
+  jwt:
+    existingSecret: trymarqet

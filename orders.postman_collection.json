@@ -1,0 +1,279 @@
+{
+	"info": {
+		"_postman_id": "2ea0b0cd-ac8a-414b-ab1c-bb5277cdadb5",
+		"name": "orders",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Register user 1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"user1AccessToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"phone\": \"{{$randomPhoneNumber}}\",\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\",\n    \"password\": \"{{user1Password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/register/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"register",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user 1 - Get user 1 account id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.collectionVariables.set(\"user1AccountId\", jsonData.id);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user1AccessToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/account/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"account",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user 1 - Top up a balance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user1AccessToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"account_id\": {{user1AccountId}},\n    \"type\": \"charge\",\n    \"amount\": 10000,\n    \"currency\": \"USD\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/balance_transactions/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"balance_transactions",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user 1 - Create an order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", () => {",
+							"  pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user1AccessToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"items\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 1\n        },\n        {\n            \"product_id\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/orders/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"orders",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user 1 - Create an order agian (with the same idempotency key)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 409\", () => {",
+							"  pm.response.to.have.status(409);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user1AccessToken}}",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"items\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 1\n        },\n        {\n            \"product_id\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/orders/",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"orders",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://arch.homework"
+		},
+		{
+			"key": "user1Password",
+			"value": "qazwsx123"
+		},
+		{
+			"key": "user1AccessToken",
+			"value": ""
+		},
+		{
+			"key": "user1AccountId",
+			"value": ""
+		}
+	]
+}

@@ -1,0 +1,25 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ include "trymarqet.fullname" . }}-jwt-authz-billing
+  namespace: {{ include "trymarqet.namespace" . }}
+  labels:
+    {{- include "trymarqet.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: billing
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["trymarqet/users"]
+    to:
+    - operation:
+        paths: ["/account/", "/balance_transactions/"]
+  - from:
+    - source:
+        namespaces: [{{ include "trymarqet.namespace" . }}]
+    to:
+    - operation:
+        paths: ["*"]

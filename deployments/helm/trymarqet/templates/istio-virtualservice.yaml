@@ -1,0 +1,45 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "trymarqet.fullname" . }}
+  namespace: {{ include "trymarqet.namespace" . }}
+  labels:
+    {{- include "trymarqet.labels" . | nindent 4 }}
+spec:
+  hosts:
+  - arch.homework
+  gateways:
+  - {{ include "trymarqet.fullname" . }}-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /login/
+    - uri:
+        prefix: /logout/
+    - uri:
+        prefix: /user/
+    - uri:
+        prefix: /register/
+    route:
+    - destination:
+        port:
+          number: 80
+        host: {{ include "trymarqet.fullname" . }}-users
+  - match:
+    - uri:
+        prefix: /account/
+    - uri:
+        prefix: /balance_transactions/
+    route:
+    - destination:
+        port:
+          number: 80
+        host: {{ include "trymarqet.fullname" . }}-billing
+  - match:
+    - uri:
+        prefix: /orders/
+    route:
+    - destination:
+        port:
+          number: 80
+        host: {{ include "trymarqet.fullname" . }}-orders

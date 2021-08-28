@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: billing REST API
+  version: 1.0.0
+
+paths:
+  /account/:
+    get:
+      tags:
+        - account
+      summary: Retrieves an account for the current user.
+      operationId: billing.api.accounts.get_current
+      parameters:
+        - $ref: "#/components/parameters/JWTPayload"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountWithID"
+
+  /accounts/find_by_user_id/{user_id}/:
+    get:
+      tags:
+        - account
+      summary: Retrieves an account by a user identifier.
+      operationId: billing.api.accounts.get_by_user_id
+      parameters:
+        - $ref: "#/components/parameters/UserID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountWithID"
+
+  /accounts/:
+    post:
+      tags:
+        - account
+      summary: Create a user account
+      operationId: billing.api.accounts.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: account
+              $ref: "#/components/schemas/Account"
+        required: true
+      responses:
+        "201":
+          description: An account successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountWithID"
+  /accounts/{account_id}/:
+    get:
+      tags:
+        - account
+      summary: Retrieves an account by an identifier.
+      operationId: billing.api.accounts.get
+      parameters:
+        - $ref: "#/components/parameters/AccountID"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountWithID"
+    delete:
+      tags:
+        - account
+      summary: Deletes an account by an identifier.
+      operationId: billing.api.accounts.delete
+      parameters:
+        - $ref: "#/components/parameters/AccountID"
+      responses:
+        "204":
+          description: Success
+
+  /balance_transactions/:
+    post:
+      tags:
+        - balance transaction
+      summary: Create a balance transaction
+      operationId: billing.api.balance_transactions.create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              x-body-name: balance_transaction
+              $ref: "#/components/schemas/BalanceTransaction"
+        required: true
+      responses:
+        "201":
+          description: A balance transaction successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceTransactionWithID"
+
+  /liveness/:
+    get:
+      tags:
+        - probe
+      summary: Indicates whether the application is running
+      operationId: billing.api.probe.liveness
+      responses:
+        "200":
+          description: Success
+
+components:
+  parameters:
+    UserID:
+      in: path
+      name: user_id
+      required: true
+      description: A user identifier
+      schema:
+        type: integer
+
+    AccountID:
+      in: path
+      name: account_id
+      required: true
+      description: An account identifier
+      schema:
+        type: integer
+
+    JWTPayload:
+      in: "header"
+      name: X-JWT-Payload
+      required: True
+      description: A JWT payload (Base64)
+      schema:
+        type: string
+
+  schemas:
+    Account:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: integer
+          description: A user identifier
+
+    AccountWithID:
+      allOf:
+        - $ref: "#/components/schemas/Account"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              description: An account identifier
+            balance:
+              type: number
+              format: decimal
+              description: An account balance
+
+    BalanceTransaction:
+      type: object
+      required:
+        - account_id
+        - type
+        - amount
+        - currency
+      properties:
+        account_id:
+          type: integer
+          description: An account identifier
+        type:
+          type: string
+          enum: [charge, payment, payment_refund]
+          description: Transaction type
+        amount:
+          type: integer
+          description: Gross amount of the transaction, in cents.
+        currency:
+          type: string
+          description: Three-letter ISO currency code, in lowercase.
+
+    BalanceTransactionWithID:
+      allOf:
+        - $ref: "#/components/schemas/BalanceTransaction"
+        - type: object
+          required:
+            - id
+            - status
+          properties:
+            id:
+              type: integer
+              description: A transaction identifier
+            status:
+              type: string
+              enum: [available, pending]
+              description: If the transaction’s net funds are available in the account balance yet. Either `available` or `pending`.
