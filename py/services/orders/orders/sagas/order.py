@@ -31,8 +31,9 @@ class CompleteOrder(Step):
         return state
 
     def compensate(self, state):
-        pass
-
+        with db.session.begin(subtransactions=True):
+            state["order"].status = OrderStatus.processing
+            db.session.add(state["order"])
 
 class SendOrderCompleted(Step):
     def execute(self, state):
