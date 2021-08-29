@@ -2,7 +2,13 @@
 
 # Теория
 
+## Идемпотентность
 <img src="./doc/idempotency.svg" width="100%">
+
+## Распределенные транзакции
+<img src="./doc/distributed-transactions.svg" width="100%">
+
+[Реализация](./py/services/orders/orders/use_cases/order.py)
 
 # Prerequisites
 

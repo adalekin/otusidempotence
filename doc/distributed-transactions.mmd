@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant client
+    participant orders
+    participant billing
+    participant notifications
+
+    client->>orders: POST /orders/
+
+    rect rgba(0, 255, 0, .1)
+    orders-->>orders: CreateOrder
+    orders-->>billing: GetAccount
+    orders-->>billing: CreatePayment
+    orders-->>orders: CompleteOrder
+    orders-->>notifications: SendOrderCompleted
+    end
+
+    orders->>client: 201: Order created
